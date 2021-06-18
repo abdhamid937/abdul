@@ -2,53 +2,34 @@
 
 $server_key = "SB-Mid-server-009TKC50bsBq2RpXTZEStaRF";
 
-$is_production = false;
+$transaction = file_get_contents('php://input');
 
-$api_url = $is_production ? 
-  'https://app.midtrans.com/snap/v1/transactions' : 
-  'https://app.sandbox.midtrans.com/snap/v1/transactions';
+$curl = curl_init();
 
-
-if( !strpos($_SERVER['REQUEST_URI'], '/charge') ) {
-  http_response_code(404); 
-  echo "wrong path, make sure it's `/charge`"; exit();
-}
-
-if( $_SERVER['REQUEST_METHOD'] !== 'POST'){
-  http_response_code(404);
-  echo "Page not found or wrong HTTP request method is used"; exit();
-}
-
-$request_body = file_get_contents('php://input');
-header('Content-Type: application/json');
-
-$charge_result = chargeAPI($api_url, $server_key, $request_body);
-
-http_response_code($charge_result['http_code']);
-
-echo $charge_result['body'];
-
-
-function chargeAPI($api_url, $server_key, $request_body){
-  $ch = curl_init();
-  $curl_options = array(
-    CURLOPT_URL => $api_url,
-    CURLOPT_RETURNTRANSFER => 1,
-    CURLOPT_POST => 1,
-    CURLOPT_HEADER => 0,
-
-
+curl_setopt_array($curl, array(
+    CURLOPT_URL => "https://app.sandbox.midtrans.com/snap/v1/transactions",
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_ENCODING => "",
+    CURLOPT_MAXREDIRS => 10,
+    CURLOPT_TIMEOUT => 30,
+    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+    CURLOPT_CUSTOMREQUEST => "POST",
+    CURLOPT_POSTFIELDS => $transaction,
     CURLOPT_HTTPHEADER => array(
-      'Content-Type: application/json',
-      'Accept: application/json',
-      'Authorization: Basic U0ItTWlkLXNlcnZlci0wMDlUS0M1MGJzQnEyUnBYVFpFU3RhUkY='
+        "accept: application/json",
+        "Authorization: Basic U0ItTWlkLXNlcnZlci0wMDlUS0M1MGJzQnEyUnBYVFpFU3RhUkY=",
+        "cache-control: no-cache",
+        "content-type: application/json"
     ),
-    CURLOPT_POSTFIELDS => $request_body
-  );
-  curl_setopt_array($ch, $curl_options);
-  $result = array(
-    'body' => curl_exec($ch),
-    'http_code' => curl_getinfo($ch, CURLINFO_HTTP_CODE),
-  );
-  return $result;
+));
+
+$response = curl_exec($curl);
+$err = curl_error($curl);
+
+curl_close($curl);
+
+if($err){
+    echo "CURL Error #: ".$err;
+}else{
+    echo $response;
 }

@@ -41,7 +41,7 @@ function chargeAPI($api_url, $server_key, $request_body){
     CURLOPT_HTTPHEADER => array(
       'Content-Type: application/json',
       'Accept: application/json',
-      'Authorization: Basic ' . base64_encode($server_key . ':')
+      'Authorization: Basic U0ItTWlkLXNlcnZlci0wMDlUS0M1MGJzQnEyUnBYVFpFU3RhUkY='
     ),
     CURLOPT_POSTFIELDS => $request_body
   );
